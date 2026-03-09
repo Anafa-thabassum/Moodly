@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Moodly — Inspire & Create</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="navbar" id="navbar">
+  <div class="nav-left">
+    <a href="#" class="logo" onclick="showFeed()">
+      <span class="logo-icon">◈</span>
+      <span class="logo-text">moodly</span>
+    </a>
+    <div class="nav-pills">
+      <button class="nav-pill active" onclick="setView('discover')">Discover</button>
+      <button class="nav-pill" onclick="setView('following')">Following</button>
+    </div>
+  </div>
+  <div class="nav-center">
+    <div class="search-wrap">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" class="search-input" id="searchInput" placeholder="Search moods, colors, ideas…" oninput="handleSearch(this.value)">
+      <kbd class="search-kbd">⌘K</kbd>
+    </div>
+  </div>
+  <div class="nav-right">
+    <button class="btn-icon" title="Notifications">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span class="badge">3</span>
+    </button>
+    <button class="btn-primary" onclick="openCanvasModal()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Create
+    </button>
+    <div class="avatar" onclick="toggleProfile()">M</div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="heroSection">
+  <div class="hero-bg">
+    <div class="hero-orb orb-1"></div>
+    <div class="hero-orb orb-2"></div>
+    <div class="hero-orb orb-3"></div>
+  </div>
+  <div class="hero-content">
+    <div class="hero-badge">✦ Your creative universe</div>
+    <h1 class="hero-title">Where Moods<br><em>Become</em> Reality</h1>
+    <p class="hero-sub">Discover stunning visuals, create your own designs,<br>and build collections that inspire.</p>
+    <div class="hero-actions">
+      <button class="btn-hero-primary" onclick="openCanvasModal()">Start Creating</button>
+      <button class="btn-hero-ghost" onclick="scrollToFeed()">Explore Feed ↓</button>
+    </div>
+  </div>
+  <div class="hero-scroll-hint">scroll</div>
+</section>
+
+<!-- CATEGORY FILTER -->
+<div class="filter-bar" id="filterBar">
+  <div class="filter-inner">
+    <button class="filter-chip active" data-cat="all" onclick="filterCategory(this, 'all')">
+      <span>All</span>
+    </button>
+    <button class="filter-chip" data-cat="Design" onclick="filterCategory(this, 'Design')">Design</button>
+    <button class="filter-chip" data-cat="Nature" onclick="filterCategory(this, 'Nature')">Nature</button>
+    <button class="filter-chip" data-cat="Architecture" onclick="filterCategory(this, 'Architecture')">Architecture</button>
+    <button class="filter-chip" data-cat="Fashion" onclick="filterCategory(this, 'Fashion')">Fashion</button>
+    <button class="filter-chip" data-cat="Urban" onclick="filterCategory(this, 'Urban')">Urban</button>
+    <button class="filter-chip" data-cat="Interior" onclick="filterCategory(this, 'Interior')">Interior</button>
+    <button class="filter-chip" data-cat="Photography" onclick="filterCategory(this, 'Photography')">Photography</button>
+  </div>
+  <div class="filter-actions">
+    <button class="sort-btn" onclick="toggleSort()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="21" y1="6" x2="3" y2="6"/><line x1="15" y1="12" x2="3" y2="12"/><line x1="9" y1="18" x2="3" y2="18"/></svg>
+      Sort
+    </button>
+  </div>
+</div>
+
+<!-- MAIN FEED -->
+<main class="feed-container" id="feedContainer">
+  <div class="masonry-grid" id="masonryGrid">
+    <!-- pins injected by JS -->
+  </div>
+  <div class="load-more-wrap">
+    <button class="btn-load-more" id="loadMoreBtn" onclick="loadMore()">Load more inspiration</button>
+  </div>
+</main>
+
+<!-- EMPTY STATE -->
+<div class="empty-state" id="emptyState" style="display:none">
+  <div class="empty-icon">◈</div>
+  <h3>Nothing here yet</h3>
+  <p>Be the first to create something amazing</p>
+  <button class="btn-primary" onclick="openCanvasModal()">Create Now</button>
+</div>
+
+<!-- PIN DETAIL MODAL -->
+<div class="modal-overlay" id="pinModal" onclick="closePinModal(event)">
+  <div class="pin-modal">
+    <button class="modal-close" onclick="closePinModal()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="pin-modal-image" id="pinModalImage"></div>
+    <div class="pin-modal-info">
+      <div class="pin-modal-actions">
+        <button class="action-btn-lg save-btn" id="pinModalSave" onclick="saveCurrentPin()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          Save
+        </button>
+        <button class="action-btn-icon" onclick="likeCurrentPin()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </button>
+        <button class="action-btn-icon" onclick="sharePin()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        </button>
+      </div>
+      <div class="pin-modal-meta">
+        <span class="pin-modal-cat" id="pinModalCat"></span>
+        <h2 id="pinModalTitle"></h2>
+        <p id="pinModalDesc"></p>
+        <div class="pin-modal-stats">
+          <span id="pinModalLikes">0 likes</span>
+          <span>·</span>
+          <span id="pinModalSaves">0 saves</span>
+        </div>
+      </div>
+      <div class="pin-color-info" id="pinColorInfo">
+        <p class="color-label">Palette</p>
+        <div class="color-swatches" id="colorSwatches"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CANVAS / CREATE MODAL -->
+<div class="modal-overlay canvas-overlay" id="canvasModal" onclick="closeCanvasModal(event)">
+  <div class="canvas-modal">
+    <div class="canvas-sidebar">
+      <div class="canvas-logo">
+        <span class="logo-icon">◈</span> Studio
+      </div>
+      <div class="tool-section">
+        <p class="tool-label">Tools</p>
+        <div class="tool-grid">
+          <button class="tool-btn active" id="tool-select" onclick="setTool('select')" title="Select">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3l14 9-7 1-3 7z"/></svg>
+          </button>
+          <button class="tool-btn" id="tool-text" onclick="setTool('text')" title="Text">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+          </button>
+          <button class="tool-btn" id="tool-rect" onclick="setTool('rect')" title="Rectangle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+          </button>
+          <button class="tool-btn" id="tool-circle" onclick="setTool('circle')" title="Circle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+          </button>
+          <button class="tool-btn" id="tool-draw" onclick="setTool('draw')" title="Draw">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          </button>
+          <button class="tool-btn" id="tool-image" onclick="triggerImageUpload()" title="Image">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="tool-section" id="colorSection">
+        <p class="tool-label">Fill Color</p>
+        <div class="color-row">
+          <input type="color" id="fillColor" value="#6c63ff" class="color-picker" onchange="updateFill(this.value)">
+          <input type="text" id="fillHex" class="hex-input" value="#6c63ff" onchange="updateFillHex(this.value)">
+        </div>
+        <p class="tool-label" style="margin-top:12px">Stroke</p>
+        <div class="color-row">
+          <input type="color" id="strokeColor" value="#000000" class="color-picker" onchange="updateStroke(this.value)">
+          <input type="range" id="strokeWidth" min="0" max="20" value="0" class="range-slider" oninput="updateStrokeWidth(this.value)">
+        </div>
+      </div>
+
+      <div class="tool-section" id="textSection" style="display:none">
+        <p class="tool-label">Typography</p>
+        <select class="tool-select" id="fontFamily" onchange="updateFont(this.value)">
+          <option value="Syne">Syne</option>
+          <option value="DM Sans">DM Sans</option>
+          <option value="Georgia">Georgia</option>
+          <option value="Courier New">Courier New</option>
+          <option value="Impact">Impact</option>
+        </select>
+        <div class="color-row" style="margin-top:8px">
+          <input type="range" id="fontSize" min="10" max="120" value="32" class="range-slider" oninput="updateFontSize(this.value)">
+          <span id="fontSizeVal" class="size-val">32</span>
+        </div>
+        <div class="style-row">
+          <button class="style-btn" onclick="toggleBold()"><b>B</b></button>
+          <button class="style-btn" onclick="toggleItalic()"><i>I</i></button>
+          <button class="style-btn" onclick="toggleUnderline()"><u>U</u></button>
+        </div>
+        <input type="color" id="textColor" value="#ffffff" class="color-picker" style="width:100%;margin-top:8px" onchange="updateTextColor(this.value)">
+      </div>
+
+      <div class="tool-section">
+        <p class="tool-label">Canvas BG</p>
+        <div class="bg-presets">
+          <div class="bg-preset" style="background:#0d0d0d" onclick="setCanvasBg('#0d0d0d')"></div>
+          <div class="bg-preset" style="background:#ffffff" onclick="setCanvasBg('#ffffff')"></div>
+          <div class="bg-preset" style="background:linear-gradient(135deg,#1a1a2e,#0f3460)" onclick="setCanvasBg('linear-gradient(135deg,#1a1a2e,#0f3460)')"></div>
+          <div class="bg-preset" style="background:linear-gradient(135deg,#6c63ff,#3ecfcf)" onclick="setCanvasBg('linear-gradient(135deg,#6c63ff,#3ecfcf)')"></div>
+          <div class="bg-preset" style="background:linear-gradient(135deg,#c9753d,#ffba08)" onclick="setCanvasBg('linear-gradient(135deg,#c9753d,#ffba08)')"></div>
+          <div class="bg-preset" style="background:linear-gradient(135deg,#ff0090,#1a0533)" onclick="setCanvasBg('linear-gradient(135deg,#ff0090,#1a0533)')"></div>
+        </div>
+        <input type="color" id="bgColor" value="#0d0d0d" class="color-picker" style="width:100%;margin-top:8px" onchange="setCanvasBg(this.value)">
+      </div>
+
+      <div class="tool-section">
+        <p class="tool-label">Layers</p>
+        <div class="layer-actions">
+          <button class="layer-btn" onclick="bringForward()">↑ Forward</button>
+          <button class="layer-btn" onclick="sendBackward()">↓ Back</button>
+          <button class="layer-btn danger" onclick="deleteSelected()">✕ Delete</button>
+        </div>
+      </div>
+
+      <input type="file" id="imageFileInput" accept="image/*" style="display:none" onchange="handleImageFile(event)">
+    </div>
+
+    <div class="canvas-main">
+      <div class="canvas-topbar">
+        <div class="canvas-title-wrap">
+          <input type="text" id="canvasTitle" class="canvas-title-input" placeholder="Untitled Design" value="My Moodboard">
+        </div>
+        <div class="canvas-top-actions">
+          <select class="tool-select" id="canvasCategory" style="width:130px">
+            <option>Design</option>
+            <option>Architecture</option>
+            <option>Nature</option>
+            <option>Fashion</option>
+            <option>Urban</option>
+            <option>Interior</option>
+            <option>Photography</option>
+          </select>
+          <button class="btn-canvas-action" onclick="clearCanvas()">Clear</button>
+          <button class="btn-canvas-publish" onclick="publishDesign()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 2 11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Publish
+          </button>
+          <button class="modal-close canvas-close" onclick="closeCanvasModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="canvas-workspace" id="canvasWorkspace">
+        <div class="canvas-board" id="canvasBoard">
+          <!-- elements added here -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- PROFILE DROPDOWN -->
+<div class="profile-dropdown" id="profileDropdown">
+  <div class="profile-header">
+    <div class="profile-avatar-lg">M</div>
+    <div>
+      <p class="profile-name">Moodly User</p>
+      <p class="profile-email">creator@moodly.io</p>
+    </div>
+  </div>
+  <div class="profile-menu">
+    <a href="#" class="profile-item">My Boards</a>
+    <a href="#" class="profile-item">Saved Pins</a>
+    <a href="#" class="profile-item">Analytics</a>
+    <a href="#" class="profile-item">Settings</a>
+    <div class="profile-divider"></div>
+    <a href="#" class="profile-item danger">Sign Out</a>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
