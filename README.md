@@ -1,5 +1,5 @@
-# Moodly
-# ◈ Moodly — Inspire & Create
+
+# Moodly — Inspire & Create
 
 > A Pinterest + Canva hybrid web app for discovering visual inspiration and designing your own moodboards.
 
